@@ -129,7 +129,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   # Allow override of the default synced folder type.
-  config.vm.synced_folder host_project_dir, '/vagrant', type: vconfig.include?('vagrant_synced_folder_default_type') ? vconfig['vagrant_synced_folder_default_type'] : 'nfs'
+  config.vm.synced_folder host_project_dir, '/vagrant', type: vconfig.include?('vagrant_synced_folder_default_type') ? vconfig['vagrant_synced_folder_default_type'] : 'virtualbox'
 
   # Provisioning. Use ansible if it's installed, ansible_local if not or if forced.
   if ansible_bin && !vconfig['force_ansible_local']
@@ -158,7 +158,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # VMware Fusion.
   config.vm.provider :vmware_fusion do |v, override|
     # HGFS kernel module currently doesn't load correctly for native shares.
-    override.vm.synced_folder host_project_dir, '/vagrant', type: 'nfs'
+    override.vm.synced_folder host_project_dir, '/vagrant', type: 'virtualbox'
 
     v.gui = vconfig['vagrant_gui']
     v.vmx['memsize'] = vconfig['vagrant_memory']
@@ -196,7 +196,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Cache the composer directory.
     config.cache.enable :generic, cache_dir: '/home/vagrant/.composer/cache'
     config.cache.synced_folder_opts = {
-      type: vconfig.include?('vagrant_synced_folder_default_type') ? vconfig['vagrant_synced_folder_default_type'] : 'nfs'
+      type: vconfig.include?('vagrant_synced_folder_default_type') ? vconfig['vagrant_synced_folder_default_type'] : 'virtualbox'
     }
   end
 
