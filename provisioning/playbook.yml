@@ -106,6 +106,7 @@
     - { role: geerlingguy.ruby, when: '"ruby" in installed_extras' }
     - { role: islandora-java, when: install_islandora  }
     - { role: islandora-tomcat, when: install_islandora  }
+    - { role: islandora-solr, when: install_islandora  }
     - { role: islandora-fedora, when: install_islandora  }
     - { role: islandora-gsearch, when: install_islandora  }
 #    - role: geerlingguy.java

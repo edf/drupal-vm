@@ -24,7 +24,7 @@ MYSQL_ROOT_USER: "root"
 #MYSQL_ROOT_PASSWORD: "correcthorsebatterystaple"
 MYSQL_ROOT_PASSWORD: "root"
 
-#  DRUPAL_DATABASE_NAME: "drupal7"
+DRUPAL_DATABASE_NAME: "{{ drupal_db_name }}"
 FEDORA_DATABASE_NAME: "fedora3"
 
 POSTGRESQL_HOSTNAME: "localhost"
@@ -83,9 +83,9 @@ DRUPAL_ACCOUNT_MAIL: "admin@drupalvm.dev"
 DRUPAL_TIMEZONE: "America/Denver"
 
 ## Solr Settings:
-#  SOLR_VERSION: 4.2.0
-#  SOLR_HOME: "/usr/local/solr"
-#  SOLR_HOSTNAME: "{{ ansible_fqdn }}"
+SOLR_VERSION: 4.2.0
+SOLR_HOME: "/opt/solr"
+SOLR_HOSTNAME: "{{ ansible_fqdn }}"
 
 # GSearch Settings:
 GSEARCH_VERSION: 2.8

@@ -199,7 +199,7 @@ installed_extras:
   #- adminer
   # - blackfire
   #- drupalconsole
-  - drush
+  #- drush
   # - elasticsearch
   # - java
   - mailhog
@@ -210,7 +210,7 @@ installed_extras:
   # - redis
   # - ruby
   # - selenium
-  - solr
+  #- solr
   # - tideways
   # - upload-progress
   #- varnish
