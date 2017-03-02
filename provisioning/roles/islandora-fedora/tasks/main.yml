@@ -4,6 +4,14 @@
 # --volume: {{ FEDORA_HOME }}/data
 # --volume: {{ FEDORA_HOME }}/server/config
 
+- name: Run the equivalent of "apt-get update" as a separate step
+  apt:
+    update_cache: yes
+
+- name: Update all packages to the latest version
+  apt:
+    upgrade: dist
+
 # create a directory if it doesn't exist
 - file:
     path: /tmp/downloads
