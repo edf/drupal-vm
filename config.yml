@@ -1,7 +1,8 @@
 ---
 # `vagrant_box` can also be set to geerlingguy/centos6, geerlingguy/centos7,
 # geerlingguy/ubuntu1404, geerlingguy/ubuntu1204, parallels/ubuntu-14.04, etc.
-vagrant_box: geerlingguy/ubuntu1404
+#vagrant_box: geerlingguy/ubuntu1404
+vagrant_box: geerlingguy/centos7
 vagrant_user: vagrant
 #vagrant_synced_folder_default_type: nfs
 vagrant_synced_folder_default_type: virtualbox
@@ -209,7 +210,7 @@ installed_extras:
   # - redis
   # - ruby
   # - selenium
-  # - solr
+   - solr
   # - tideways
   # - upload-progress
   #- varnish
@@ -318,7 +319,8 @@ php_xdebug_idekey: PHPSTORM
 php_xdebug_max_nesting_level: 256
 
 # Solr Configuration (if enabled above).
-solr_version: "5.5.3"
+#solr_version: "5.5.3"
+solr_version: "4.10.3"
 solr_xms: "64M"
 solr_xmx: "128M"
 
