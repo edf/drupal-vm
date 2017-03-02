@@ -1,0 +1,256 @@
+---
+### milestone 1 - Installing Fedora
+# --volume: {{ FEDORA_HOME }}
+# --volume: {{ FEDORA_HOME }}/data
+# --volume: {{ FEDORA_HOME }}/server/config
+
+# create a directory if it doesn't exist
+- file:
+    path: /tmp/downloads
+    state: directory
+    mode: 0755
+
+# create timestamp
+- shell: 'date +%Y-%m%d-%H%M-%S-%5N'
+  register: current_run_timestamp
+
+- name: Install git
+  apt:
+    pkg: git
+    state: present
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: "Download Fedora v{{ FEDORA_VERSION }}"
+  get_url:
+    url: "https://github.com/fcrepo3/fcrepo/releases/download/v{{ FEDORA_VERSION }}/fcrepo-installer-{{ FEDORA_VERSION }}.jar"
+    dest: "{{ DOWNLOAD_DIR }}/fcrepo-installer-{{ FEDORA_VERSION }}.jar"
+
+- name: Prepare the local environment variables
+  template:
+    src: fedora-profile.sh.j2 
+    dest: /etc/profile.d/fedora-profile.sh
+
+- name: Create an "install.properties" file | MySQL
+  template:
+    src: install.properties.mysql.j2 
+    dest: "{{ DOWNLOAD_DIR }}/install.properties"
+  when: USE_POSTGRESQL == "false"
+  register: install_mysql_properties
+
+- name: Create an "install.properties" file | PostgreSQL
+  template:
+    src: install.properties.postgresql.j2 
+    dest: "{{ DOWNLOAD_DIR }}/install.properties"
+  when: USE_POSTGRESQL == "true"
+  register: install_postgres_properties
+
+- name: Install Fedora
+  shell: "{{ item }}"
+  with_items:
+    - "echo 'yes' | java -jar {{ DOWNLOAD_DIR }}/fcrepo-installer-{{ FEDORA_VERSION }}.jar {{ DOWNLOAD_DIR }}/install.properties"
+  args:
+    chdir: "{{ DOWNLOAD_DIR }}/"
+  when: install_mysql_properties.changed or install_postgres_properties.changed
+
+- name: rename install.properties
+  command: mv "{{ DOWNLOAD_DIR }}/install.properties"  "{{ DOWNLOAD_DIR }}/install.properties-{{ current_run_timestamp.stdout }}"
+
+- name: Set namespace id for pids
+  replace:
+    regexp: 'param name="pidNamespace" value="changeme"'
+    replace: 'param name="pidNamespace" value="{{ PID_NAME_SPACE }}"'
+    dest: "{{ FEDORA_HOME }}/server/config/fedora.fcfg"
+
+- name: Set Permissions
+  file: 
+    path: "{{ item }}"
+    owner: "{{ TOMCAT_USER }}" 
+    group: "{{ TOMCAT_USER }}" 
+    recurse: yes
+  with_items:
+    - "{{ TOMCAT_HOME }}/webapps"
+    - "{{ FEDORA_HOME }}"
+
+- name: Start tomcat
+  service:
+    name: "{{ TOMCAT_USER }}"
+    state: restarted
+  when: install_mysql_properties.changed or install_postgres_properties.changed
+
+- name: Wait for tomcat
+  wait_for:
+    path: "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml"
+  when: install_mysql_properties.changed or install_postgres_properties.changed
+
+- name: Download / Clone the Islandora specific XACML policies
+  git:
+    repo: https://github.com/Islandora/islandora-xacml-policies.git
+    dest: "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/islandora"
+    update: no
+
+- name: Remove the deny-purge policies and the anonymous-user policies
+  file: 
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/default/deny-purge-datastream-if-active-or-inactive.xml"
+    - "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/default/deny-purge-object-if-active-or-inactive.xml"
+    - "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/islandora/permit-apim-to-anonymous-user.xml"
+    - "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/islandora/permit-upload-to-anonymous-user.xml"
+
+- name: Giving access to Fedora
+  lineinfile: 
+    line: "            <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{ item }}</AttributeValue>"
+    insertafter: "            <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">127.0.0.1</AttributeValue>"
+    dest: "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml"
+  with_items: "{{ IP_TO_ACCESS_FEDORA }}"
+
+# Installing Djatoka
+- name: "Create {{ DJATOKA_HOME }} folder"
+  file: 
+    path: "{{ DJATOKA_HOME }}" 
+    state: directory
+    
+- name: "Download Djatoka"
+  get_url:
+    url: "http://downloads.sourceforge.net/project/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz"
+    dest: "{{ DOWNLOAD_DIR }}/adore-djatoka-1.1.tar.gz"
+    timeout: 120
+
+- name: Untar Djatoka
+  shell: "tar -xzf {{ DOWNLOAD_DIR }}/adore-djatoka-1.1.tar.gz -C {{ DJATOKA_HOME }} --strip-components=1"
+  args:
+    executable: /bin/bash
+    creates: "{{ DJATOKA_HOME }}/bin/Linux-x86-64/kdu_compress"
+
+- name: Symlink kdu_compress for Large Image Solution Pack
+  file:
+    src: "{{ DJATOKA_HOME }}/bin/Linux-x86-64/kdu_compress"
+    dest: /usr/bin/kdu_compress
+    state: link
+
+- name: Symlink kdu_expand for Large Image Solution Pack
+  file:
+    src: "{{ DJATOKA_HOME }}/bin/Linux-x86-64/kdu_expand"
+    dest: /usr/bin/kdu_expand
+    state: link
+
+- name: Deploy Djatoka
+  copy:
+    src: "{{ DJATOKA_HOME }}/dist/adore-djatoka.war"
+    dest: "{{ TOMCAT_HOME }}/webapps/adore-djatoka.war"
+    remote_src: yes
+  register: deployed_djatoka
+
+- name: "Copy kdu_libs.conf"
+  copy:
+    src: kdu_libs.conf
+    dest: /etc/ld.so.conf.d/kdu_libs.conf
+
+- name: Restart tomcat
+  service:
+    name: tomcat7
+    state: restarted
+  when: deployed_djatoka.changed
+
+- name: Wait for adore-djatoka
+  wait_for: 
+    path: "{{ TOMCAT_HOME }}/webapps/adore-djatoka/WEB-INF/classes"
+  when: deployed_djatoka.changed
+
+- name: "Setup Djatoka Logging"
+  copy:
+    src: log4j.properties
+    dest: "{{ TOMCAT_HOME }}/webapps/adore-djatoka/WEB-INF/classes/log4j.properties"
+
+- name: "DJATOKA: Change the environment variables"
+  blockinfile:
+    dest: "{{ TOMCAT_HOME }}/bin/startup.sh"
+    block:  |
+      . {{ DJATOKA_HOME }}/bin/env.sh
+      export JAVA_OPTS
+      echo $JAVA_OPTS
+      exec "$PRGDIR"/"$EXECUTABLE" start "$@"
+- name: "DJATOKA: Modify the env.sh file"
+  replace:
+    regexp: "{{ item.old }}"
+    replace: "{{ item.new }}"
+    dest: "{{ DJATOKA_HOME }}/bin/env.sh"
+  with_items:
+    - old: 'LAUNCHDIR=\$PWD'
+      new: "LAUNCHDIR={{ DJATOKA_HOME }}/bin"
+    - old: '^cd ..'
+      new: '# cd ..'
+    - old: 'DJATOKA_HOME=`pwd`'
+      new: "DJATOKA_HOME={{ DJATOKA_HOME }}"
+    - old: '^cd \$LAUNCHDIR'
+      new: '# cd $LAUNCHDIR'
+    - old: '^for line in'
+      new: '# for line in'
+    - old: '^  do'
+      new: '#   do'
+    - old: '^  classpath'
+      new: '#   classpath'
+    - old: '^done'
+      new: '# done'
+    - old: '^CLASSPATH='
+      new: '# CLASSPATH='
+    - old: 'JAVA_OPTS="\$DEBUG -Djava.awt.headless=true  -Xmx512M -Xms64M -Dkakadu.home=\$KAKADU_HOME -Djava.library.path=\$LIBPATH\/\$PLATFORM \$KAKADU_LIBRARY_PATH"'
+      new: 'JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true -Dkakadu.home=$KAKADU_HOME -Djava.library.path=$LIBPATH/$PLATFORM $KAKADU_LIBRARY_PATH"'
+- lineinfile:
+    dest: "{{ DJATOKA_HOME }}/bin/env.sh"
+    insertafter: "# setup environment variables for shell script"
+    regexp: '^CURRENTDIR=\$PWD'
+    line: "CURRENTDIR=$PWD"
+
+### milestone 3 - Installing & Configuring Drupal Filter
+- name: "Download the Latest Version of the Islandora Drupal Filter"
+  get_url:
+    url: "https://github.com/Islandora/islandora_drupal_filter/releases/download/v7.1.3/fcrepo-drupalauthfilter-{{ FEDORA_VERSION }}.jar"
+    dest: "{{ TOMCAT_HOME }}/webapps/fedora/WEB-INF/lib/fcrepo-drupalauthfilter-{{ FEDORA_VERSION }}.jar"
+
+- name: "Make the Fedora Repository Aware of the New Filter"
+  copy:
+    src: jaas.conf
+    dest: "{{ FEDORA_HOME }}/server/config/jaas.conf"
+
+- name: Making sure that tomcat is down...
+  command: "pkill java"
+  when: deployed_djatoka.changed
+
+- name: Set Permissions
+  file: 
+    path: "{{ item }}"
+    owner: "{{ TOMCAT_USER }}" 
+    group: "{{ TOMCAT_USER }}" 
+    recurse: yes
+  with_items:
+    - "{{ TOMCAT_HOME }}/webapps"
+    - "{{ FEDORA_HOME }}"
+
+- name: "Configure the new filter to connect to Drupal (filter-drupal.xml)"
+  template: 
+    src: filter-drupal.xml.j2
+    dest: "{{ FEDORA_HOME }}/server/config/filter-drupal.xml"
+    owner: "www-data"
+    group: "www-data"
+
+### milestone 6 - Installing Solr
+- name: Configure fedora-users.xml
+  template: 
+    src: fedora-users.xml.j2
+    dest: "{{ FEDORA_HOME }}/server/config/fedora-users.xml"
+    owner: "{{ TOMCAT_USER }}"
+    group: "{{ TOMCAT_USER }}"
+
+- name: Start tomcat
+  service:
+    name: "{{ TOMCAT_USER }}"
+    state: restarted
+
+# - name: Wait for tomcat
+#   wait_for:
+#     path: "{{ TOMCAT_HOME }}/logs/catalina.out"
+#     search_regex: "INFO: Server startup in"
+    

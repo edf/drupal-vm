@@ -6,3 +6,147 @@ _devtool_docroots:
   - "{{ dashboard_install_dir|default('') }}"
 
 drupalvm_user: "{{ ansible_ssh_user | default(ansible_env.SUDO_USER, true) | default(ansible_env.USER, true) | default(ansible_user_id) }}"
+
+# Islandora & Tuque Versions:
+ISLANDORA_VERSION: "7.x-1.8"
+TUQUE_VERSION: "1.8"
+
+# ENV Settings:
+USE_POSTGRESQL: "{{ ansible_env.USE_POSTGRESQL | default('false') }}"
+PID_NAME_SPACE: "{{ ansible_env.PID_NAME_SPACE | default('changeme') }}"
+INSTALL_COMPLETE_MODULE: "{{ ansible_env.INSTALL_COMPLETE_MODULE | default('false') }}"
+DOWNLOAD_DIR: "{{ ansible_env.DOWNLOAD_DIR | default('/tmp/downloads') }}"
+
+## MySQL Settings:
+MYSQL_HOSTNAME: "localhost"
+MYSQL_PORT: "3306"
+MYSQL_ROOT_USER: "root"
+#MYSQL_ROOT_PASSWORD: "correcthorsebatterystaple"
+MYSQL_ROOT_PASSWORD: "root"
+
+#  DRUPAL_DATABASE_NAME: "drupal7"
+FEDORA_DATABASE_NAME: "fedora3"
+
+POSTGRESQL_HOSTNAME: "localhost"
+
+FEDORA_ADMIN_USER: "fedoraAdmin"
+FEDORA_ADMIN_PASSWORD: "correcthorsebatterystaple"
+
+FEDORA_BATCH_USER: "fedoraBot"
+FEDORA_BATCH_PASSWORD: "correcthorsebatterystaple"
+
+FEDORA_DATABASE_USER: "fedoraDB"
+FEDORA_DATABASE_PASSWORD: "correcthorsebatterystaple"
+
+FGSADMIN_USER: fgsAdmin
+FGSADMIN_PASSWORD: "correcthorsebatterystaple"
+
+# Tomcat Settings:
+TOMCAT_HOME: "/var/lib/tomcat7"
+TOMCAT_USER: "tomcat7"
+JAVA_HOME: "/usr/lib/jvm/java-8-oracle/jre"
+JAVA_OPT_MEMORY_MAX: "1g"  # was 1024m - setting should be no more than 50% of system memory (or 70)
+TOMCAT_GUI_USER: "tomcatAdmin"
+TOMCAT_GUI_PASSWORD: "correcthorsebatterystaple"
+
+# Fedora Settings:
+FEDORA_HOME: "/opt/fedora"
+FEDORA_VERSION: 3.8.1
+FEDORA_HOSTNAME: "{{ ansible_fqdn }}"
+# An example of giving an IP access to fedora
+IP_TO_ACCESS_FEDORA:
+      - "{{ ansible_fqdn }}"
+      - "{{ ansible_default_ipv4.address }}"
+
+# Djatoka Settings:
+DJATOKA_HOME: "/opt/djatoka"
+DJATOKA_HOSTNAME: "{{ ansible_fqdn }}"
+
+## Apache Settings:
+#  APACHE_CONFIG_FILE: "/etc/apache2/sites-enabled/000-default.conf"
+#  APACHE_SERVER_ALIAS: "{{ ansible_fqdn }}"
+#  APACHE_PORT: 80
+
+# Drush Settings:
+DRUSH_VERSION: 8.1.5
+
+## Drupal Settings:
+#  DRUPAL_PROJECT_RENAME: "html"
+#  DRUPAL_HOME: "/var/www/{{ DRUPAL_PROJECT_RENAME }}"
+#  DRUPAL_VERSION: 7
+
+##  DRUPAL_SITE_ADMIN: "admin"
+#  DRUPAL_SITE_ADMIN_PASSWORD: "islandora"
+DRUPAL_SITE_NAME: "Islandora Enterprise Stack"
+DRUPAL_SITE_MAIL: "no-reply@drupalvm.dev"
+DRUPAL_ACCOUNT_MAIL: "admin@drupalvm.dev"
+DRUPAL_TIMEZONE: "America/Denver"
+
+## Solr Settings:
+#  SOLR_VERSION: 4.2.0
+#  SOLR_HOME: "/usr/local/solr"
+#  SOLR_HOSTNAME: "{{ ansible_fqdn }}"
+
+# GSearch Settings:
+GSEARCH_VERSION: 2.8
+GSEARCH_HOSTNAME: "{{ ansible_fqdn }}"
+
+# FFMPEG Settings:
+FFMPEG_VERSION: 1.1.4
+
+# Fits Settings:
+FITS_HOME: "/usr/local/fits"
+FITS_VERSION: 0.10.1
+
+# Modules Settings:
+MINIMAL_MODULES:
+    - islandora
+    - islandora_solution_pack_collection
+    - islandora_solution_pack_image
+    - islandora_solution_pack_pdf
+    - islandora_solr_facet_pages
+    - islandora_solr_metadata
+    - islandora_solr_search
+    - islandora_solr_views
+    - objective_forms
+    - php_lib
+    - islandora_xml_forms
+    - islandora_pdfjs
+
+COMPLETE_MODULES:
+    - islandora_altmetrics
+    - islandora_bagit
+    - islandora_batch
+    - islandora_book_batch
+    - islandora_bookmark
+    - islandora_checksum
+    - islandora_checksum_checker
+    - islandora_fits
+    - islandora_importer
+    - islandora_internet_archive_bookreader
+    - islandora_marcxml
+    - islandora_newspaper_batch
+    - islandora_oai
+    - islandora_ocr
+    - islandora_openseadragon
+    - islandora_paged_content
+    - islandora_pathauto
+    - islandora_premis
+    - islandora_populator
+    - islandora_scholar
+    - islandora_simple_workflow
+    - islandora_solution_pack_audio
+    - islandora_solution_pack_book
+    - islandora_solution_pack_compound
+    - islandora_solution_pack_disk_image
+    - islandora_solution_pack_entities
+    - islandora_solution_pack_large_image
+    - islandora_solution_pack_newspaper
+    - islandora_solution_pack_video
+    - islandora_solution_pack_web_archive
+    - islandora_usage_stats
+    - islandora_videojs
+    - islandora_xacml_editor
+    - islandora_form_fieldpanel
+    - islandora_xmlsitemap
+
