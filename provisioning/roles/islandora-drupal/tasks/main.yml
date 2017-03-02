@@ -105,7 +105,7 @@
     - php5-xsl
     - php-soap
     - php5-curl
-    - php5-imagick
+    - php-imagick
   when: ansible_distribution_release == "trusty"
 
 - name: Install Drupal deps
@@ -147,18 +147,18 @@
 #     chdir: /var/www/
 #     creates: "{{ DRUPAL_HOME }}/index.php"
 #
-# - name: Enable rewrite module
-#   apache2_module:
-#     state: present
-#     name: "{{ item }}"
-#   with_items:
+- name: Enable rewrite module
+  apache2_module:
+    state: present
+    name: "{{ item }}"
+  with_items:
 #     - rewrite
-#     - xml2enc
-#   register: apache_modules
+    - xml2enc
+  register: apache_modules
 
 - name: Increase the maximum file size settings in Drupal
   blockinfile:
-    dest: /etc/php5/apache2/conf.d/20-islandora.ini
+    dest: /etc/php/5.6/apache2/conf.d/20-islandora.ini
     create: yes
     block: |
       upload_max_filesize = 2048M
