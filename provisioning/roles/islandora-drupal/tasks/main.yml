@@ -240,37 +240,37 @@
     - { src: "/etc/apache2/mods-available/proxy_html.load", dest: "/etc/apache2/mods-enabled/proxy_html.load" }
     - { src: "/etc/apache2/mods-available/headers.load", dest: "/etc/apache2/mods-enabled/headers.load" }
 
-- name: shellcheck disable=SC2162
-  blockinfile:
-    dest: "{{ APACHE_CONFIG_FILE }}"
-    insertbefore: "^</VirtualHost>"
-    block: |
-        ServerAlias {{ APACHE_SERVER_ALIAS }}
-
-        <Directory {{ DRUPAL_HOME }}>
-          Options Indexes FollowSymLinks
-          AllowOverride All
-          Require all granted
-        </Directory>
-
-        ProxyRequests Off
-        ProxyPreserveHost On
-
-        <Proxy *>
-          Order deny,allow
-          Allow from all
-        </Proxy>
-
-        ProxyPass /fedora/get http://{{ FEDORA_HOSTNAME }}:8080/fedora/get
-        ProxyPassReverse /fedora/get http://{{ FEDORA_HOSTNAME }}:8080/fedora/get
-        ProxyPass /fedora/services http://{{ FEDORA_HOSTNAME }}:8080/fedora/services
-        ProxyPassReverse /fedora/services http://{{ FEDORA_HOSTNAME }}:8080/fedora/services
-        ProxyPass /fedora/describe http://{{ FEDORA_HOSTNAME }}:8080/fedora/describe
-        ProxyPassReverse /fedora/describe http://{{ FEDORA_HOSTNAME }}:8080/fedora/describe
-        ProxyPass /fedora/risearch http://{{ FEDORA_HOSTNAME }}:8080/fedora/risearch
-        ProxyPassReverse /fedora/risearch http://{{ FEDORA_HOSTNAME }}:8080/fedora/risearch
-        ProxyPass /adore-djatoka http://{{ DJATOKA_HOSTNAME }}:8080/adore-djatoka
-        ProxyPassReverse /adore-djatoka http://{{ DJATOKA_HOSTNAME }}:8080/adore-djatoka
+# - name: shellcheck disable=SC2162
+#   blockinfile:
+#     dest: "{{ APACHE_CONFIG_FILE }}"
+#     insertbefore: "^</VirtualHost>"
+#     block: |
+#         ServerAlias {{ APACHE_SERVER_ALIAS }}
+#
+#         <Directory {{ DRUPAL_HOME }}>
+#           Options Indexes FollowSymLinks
+#           AllowOverride All
+#           Require all granted
+#         </Directory>
+#
+#         ProxyRequests Off
+#         ProxyPreserveHost On
+#
+#         <Proxy *>
+#           Order deny,allow
+#           Allow from all
+#         </Proxy>
+#
+#         ProxyPass /fedora/get http://{{ FEDORA_HOSTNAME }}:8080/fedora/get
+#         ProxyPassReverse /fedora/get http://{{ FEDORA_HOSTNAME }}:8080/fedora/get
+#         ProxyPass /fedora/services http://{{ FEDORA_HOSTNAME }}:8080/fedora/services
+#         ProxyPassReverse /fedora/services http://{{ FEDORA_HOSTNAME }}:8080/fedora/services
+#         ProxyPass /fedora/describe http://{{ FEDORA_HOSTNAME }}:8080/fedora/describe
+#         ProxyPassReverse /fedora/describe http://{{ FEDORA_HOSTNAME }}:8080/fedora/describe
+#         ProxyPass /fedora/risearch http://{{ FEDORA_HOSTNAME }}:8080/fedora/risearch
+#         ProxyPassReverse /fedora/risearch http://{{ FEDORA_HOSTNAME }}:8080/fedora/risearch
+#         ProxyPass /adore-djatoka http://{{ DJATOKA_HOSTNAME }}:8080/adore-djatoka
+#         ProxyPassReverse /adore-djatoka http://{{ DJATOKA_HOSTNAME }}:8080/adore-djatoka
 
 # - name: Torch the default index.html
 #   file:
