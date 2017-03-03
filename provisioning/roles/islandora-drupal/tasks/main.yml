@@ -303,7 +303,7 @@
 
 
 - name: Creates directory
-  file: path="{{ DRUPAL_HOME }}/sites/all/module"  state=directory
+  file: path="{{ DRUPAL_HOME }}/sites/all/modules"  state=directory
 
 
 ### milestone 5 - Installing the Islandora Essential Modules
